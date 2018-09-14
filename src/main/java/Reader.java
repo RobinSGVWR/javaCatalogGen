@@ -6,6 +6,8 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -81,7 +83,7 @@ public class Reader extends JPanel implements ActionListener {
                 } catch (Exception ex) {
                     System.out.println(e.toString());
                     this.addToConsole(ex.toString());
-                }
+              }
                 bar.setValue(20);
 
 //                ici nous avons toutes les lignes comportant les mel number dans un array
@@ -126,6 +128,10 @@ public class Reader extends JPanel implements ActionListener {
     public void getStarted() {
         System.out.println("event File triggered");
         this.addToConsole("event File triggered");
+        Path currentRelativePath = Paths.get("");
+        this.addToConsole("Current desktop path is: "+System.getProperty("user.home") + "/Desktop/");
+        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/"+txt;//name of excel file= "C:/"+txt+".xlsx";/
+        this.addToConsole("le fichier sera enregistré sous "+excelFileName);
 
         this.add(this.startButton);
         this.add(this.txt);

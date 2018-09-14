@@ -50,10 +50,11 @@ public class MongoWriter {
         DB db = mongoClient.getDB("catalog");
         DBCollection collection = db.getCollection("products");
 
-        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/"+txt+".xls";//name of excel file= "C:/"+txt+".xlsx";/
+        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/"+txt;//name of excel file= "C:/"+txt+".xlsx";/
         reader.addToConsole("le fichier sera enregistré sous "+excelFileName);
 
-
+        final File folder = new File(System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/Mettre_ici_les_fichiers_melNumber");
+        listFilesForFolder(folder);
 
         LinkedHashMap<String, ArrayList<String>> map = getHeaders();
 
@@ -65,104 +66,133 @@ public class MongoWriter {
         HSSFSheet sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
 
         /*initialisations*/
-        HSSFRow row1 = sheet.createRow( 0);
-        int i=1;
-        HSSFCell firstHeaderCell = row1.createCell(0);
-        firstHeaderCell.setCellValue("Mel Number");
-        for (String name: map.keySet()){
-
-            String key =name.toString();
-            /*Creation du tableau des clés*/
-            keys.add(key);
-
-            /*remplissage du header du excel*/
-            HSSFCell cell = row1.createCell( i);
-//            System.out.println(name);
-            cell.setCellValue(name);
-            i++;
-        }
+        printHeader(sheet,map);
         int j=1;
         int cptRow=0;
-        int cptSheet=2;
+        int cptSheet=1;
+        int listReader=0;
         /*parcourt des mel number recherchés*/
-        for (String melNumber : this.rowL) {
-            System.out.println("Nouveau Mel Number :"+melNumber);
 
+
+        int leCpt=0;
+        for (String melNumber : this.rowL) {
+
+            System.out.println(listReader);
             BasicDBObject searchQuery = new BasicDBObject();
             searchQuery.put("MEL Number", melNumber);
             DBCursor cursor = collection.find(searchQuery);
 
 
-            while (cursor.hasNext()) {
-                cptRow++;
 
-                /*Initialisation d'une ligne par melNumber*/
-                 row1 = sheet.createRow(j);
-                 j++;
+            if(cursor==null || cursor.count()<1){
+                listReader++;
+                System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
-                DBObject article = cursor.next();
-                System.out.println("Nouveau articles :"+article);
-
-                /*Comment recuperer valeur attribut*/
-//                String attr = String.valueOf(article.get("Hierarchy Level Image #01"));
-//                System.out.println(attr);
-
-//                remplissage d'une ligne
-                HSSFCell firstCell = row1.createCell(0);
-                firstCell.setCellValue(melNumber);
-                i=1;
-                for (String name: map.keySet()){
-                    HSSFCell cell = row1.createCell(i);
-
-
-                    /* parcourt de chacune des asset rechercher par header */
-                    String key =name.toString();
-                    ArrayList<String> values = map.get(name);
-                    String valeur="";
-                    for(String asset : values ){
+                HSSFRow row1 = sheet.createRow(j);
+                j++;
+                HSSFCell cell = row1.createCell(0);
+                cell.setCellValue(melNumber);
+            }
+            else{
+                while (cursor.hasNext()) {
+                    cptRow++;
+                    listReader++;
+                    DBObject article = cursor.next();
+                    System.out.println("||||||||||||||||||||||||");
+                    System.out.println(melNumber);
+                    System.out.println(String.valueOf(article.get("MEL Number")));
+                    System.out.println(melNumber.equals(String.valueOf(article.get("MEL Number"))));
+                    leCpt++;
 
 
-                        boolean find = false;
-                        /*recherche si le asset existe dans le dbobject*/
-                        int cpt = 0;
+                    /*Initialisation d'une ligne par melNumber*/
+                     HSSFRow row1 = sheet.createRow(j);
+                     j++;
 
 
-                            if(String.valueOf(article.get(asset))==null ||
-                                    String.valueOf(article.get(asset)).toString().equals("null")){
-                                if(valeur.equals("")){
-                                    valeur="";
+
+                    /*Comment recuperer valeur attribut*/
+    //                String attr = String.valueOf(article.get("Hierarchy Level Image #01"));
+    //                System.out.println(attr);
+
+    //                remplissage d'une ligne
+                    HSSFCell firstCell = row1.createCell(0);
+                    firstCell.setCellValue(melNumber);
+                    int i=1;
+                    for (String name: map.keySet()){
+                        HSSFCell cell = row1.createCell(i);
+
+
+                        /* parcourt de chacune des asset rechercher par header */
+                        String key =name.toString();
+                        ArrayList<String> values = map.get(name);
+                        String valeur="";
+                        for(String asset : values ){
+
+
+                            boolean find = false;
+                            /*recherche si le asset existe dans le dbobject*/
+                            int cpt = 0;
+
+
+                                if(String.valueOf(article.get(asset))==null ||
+                                        String.valueOf(article.get(asset)).toString().equals("null")){
+                                    if(valeur.equals("")){
+                                        valeur="";
+                                    }
                                 }
-                            }
-                            else{
-                                /*Ici, une valeur a été trouvé, il faut donc l'ajouter dans la case du excel*/
-                                find=true;
-                                System.out.println("nouveau header :"+name);
-                                System.out.println("Nouveau attribut : "+asset);
-                                valeur=String.valueOf(article.get(asset));
-                                System.out.println("trouvé! "+valeur);
+                                else{
+                                    /*Ici, une valeur a été trouvé, il faut donc l'ajouter dans la case du excel*/
+                                    find=true;
+    //                                System.out.println("nouveau header :"+name);
+    //                                System.out.println("Nouveau attribut : "+asset);
+                                    valeur=String.valueOf(article.get(asset));
+    //                                System.out.println("trouvé! "+valeur);
 
+                                }
+
+                        }
+                        cell.setCellValue(valeur);
+
+                        if(cptRow>30000){
+                            cptRow=0;
+    //                         sheetName = "Sheet"+cptSheet;//name of sheet
+    //                        cptSheet++;
+    //                        sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
+    //                        cptRow=0;
+                            this.reader.addToConsole("Tentative de sauvegarde "+cptSheet);
+
+                            try  (OutputStream fileOut = new FileOutputStream(excelFileName+"-"+cptSheet+".xls")) {
+                                newWorkBook.write(fileOut);
+                                System.out.println("fichier sauvegardé");
+                                this.reader.addToConsole("Fichier sauvegardé");
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
+                            cptSheet++;
+                             newWorkBook = new HSSFWorkbook();
+
+                            sheetName = "Sheet";//name of sheet
+                             sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
+
+                             printHeader(sheet, map);
+
+                            j=1;
+                        }
+
+                        i++;
+
 
                     }
-//                    if(cptRow>2){
-//                         sheetName = "Sheet"+cptSheet;//name of sheet
-//                        cptSheet++;
-//                        sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
-//                        cptRow=0;
-//                    }
-                    cell.setCellValue(valeur);
-                    i++;
-
 
                 }
-
             }
         }
 
 
 
         this.reader.addToConsole("Tentative de sauvegarde");
-        try  (OutputStream fileOut = new FileOutputStream(excelFileName)) {
+        try  (OutputStream fileOut = new FileOutputStream(excelFileName+"-Final.xls")) {
             newWorkBook.write(fileOut);
             System.out.println("fichier sauvegardé");
             this.reader.addToConsole("Fichier sauvegardé");
@@ -291,43 +321,40 @@ public class MongoWriter {
         return null;
     }
 
-//    public String getValueWithMelAndAsset(String melNumber, String asset){
-//        BasicDBObject searchQuery = new BasicDBObject();
-//        searchQuery.put("MEL Number", melNumber);
-//        DBCursor cursor = collection.find(searchQuery);
-//
-//        while (cursor.hasNext()) {
-//
-//            DBObject theObj = cursor.next();
-//            System.out.println(theObj);
-//
-//            if(){
-//
-//            }
-//
-//        }
-//
-//        while (cursor.hasNext()) {
-//            DBObject theObj = cursor.next();
-//            //How to get the DBObject value to ArrayList of Java Object?
-//
-//            BasicDBList studentsList = (BasicDBList) theObj.get("students");
-//            for (int i = 0; i < studentsList.size(); i++) {
-//                BasicDBObject studentObj = (BasicDBObject) studentsList.get(i);
-//                String firstName = studentObj.getString("firstName");
-//                String lastName = studentObj.getString("lastName");
-//                String age = studentObj.getString("age");
-//                String gender = studentObj.getString("gender");
-//
-//                Student student = new Student();
-//                student.setFirstName(firstName);
-//                student.setLastName(lastName);
-//                student.setAge(age);
-//                student.setGender(gender);
-//
-//                students.add(student);
-//    }
+
     
+    private void printHeader(HSSFSheet sheet, LinkedHashMap<String, ArrayList<String>> map){
+        HSSFRow row1 = sheet.createRow( 0);
+        int i=1;
+        HSSFCell firstHeaderCell = row1.createCell(0);
+        firstHeaderCell.setCellValue("Mel Number");
+        ArrayList<String> keys = new ArrayList();
+        for (String name: map.keySet()){
+
+            String key =name.toString();
+            /*Creation du tableau des clés*/
+            keys.add(key);
+
+            /*remplissage du header du excel*/
+            HSSFCell cell = row1.createCell( i);
+    //            System.out.println(name);
+            cell.setCellValue(name);
+            i++;
+        }
+    }
+
+
+
+    private void listFilesForFolder(final File folder) {
+        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
+            if (fileEntry.isDirectory()) {
+                listFilesForFolder(fileEntry);
+            } else {
+                System.out.println(fileEntry.getName());
+                reader.addToConsole(fileEntry.getName());
+            }
+        }
+    }
 
 
 
