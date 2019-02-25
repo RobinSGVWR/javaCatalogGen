@@ -16,7 +16,6 @@ public class FileChooser extends JPanel implements ActionListener {
     private Reader reader;
 
     FileChooser(String l, Reader reader) {
-
         super(new FlowLayout());
         this.reader = reader;
 

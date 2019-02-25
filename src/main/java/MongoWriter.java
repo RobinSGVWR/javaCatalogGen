@@ -33,7 +33,6 @@ public class MongoWriter {
     }
 
     void generateMongo() throws UnknownHostException {
-
         /**
          * le but est de parcourir chaque mel number, et pour chacune de ces reférences,
          * aller dans le tableau associé (map) regardé les attributs dispobible, faire
@@ -47,10 +46,8 @@ public class MongoWriter {
         DB db = mongoClient.getDB("catalog");
         DBCollection collection = db.getCollection("products");
 
-        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/" + txt;// name of
-                                                                                                           // excel
-                                                                                                           // file=
-                                                                                                           // "C:/"+txt+".xlsx";/
+        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/" + txt;
+        // name of excel file = "C:/"+txt+".xlsx"
         reader.addToConsole("le fichier sera enregistré sous " + excelFileName);
 
         final File folder = new File(
@@ -75,7 +72,6 @@ public class MongoWriter {
 
         int leCpt = 0;
         for (String melNumber : this.rowL) {
-
             System.out.println(listReader);
             BasicDBObject searchQuery = new BasicDBObject();
             searchQuery.put("MEL Number", melNumber);
@@ -170,9 +166,7 @@ public class MongoWriter {
                         }
 
                         i++;
-
                     }
-
                 }
             }
         }
