@@ -6,14 +6,12 @@ import java.io.File;
 import javax.swing.*;
 
 public class FileChooser extends JPanel implements ActionListener {
+    private static final long serialVersionUID = 1L;
 
-	
-private static final long serialVersionUID = 1L;
-
-	private JButton openButton;
+    private JButton openButton;
     private JTextField path;
     private JFileChooser fc;
-    private File file; 
+    private File file;
     private JLabel label;
     private Reader reader;
 
@@ -28,11 +26,12 @@ private static final long serialVersionUID = 1L;
         label = new JLabel(l);
         openButton = new JButton("Parcourir");
         openButton.addActionListener(this);
-     
+
         this.add(label);
         this.add(path);
         this.add(openButton);
     }
+
     FileChooser(String l) {
         super(new FlowLayout());
 
@@ -48,9 +47,10 @@ private static final long serialVersionUID = 1L;
         this.add(openButton);
     }
 
-    public JFileChooser getJFileChooser(){
+    public JFileChooser getJFileChooser() {
         return fc;
     }
+
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == openButton) {
@@ -66,7 +66,6 @@ private static final long serialVersionUID = 1L;
     }
 
     File getFile() {
-    	return file;
+        return file;
     }
-    
 }

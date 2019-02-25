@@ -1,3 +1,4 @@
+
 //
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by Fernflower decompiler)
@@ -61,7 +62,6 @@ public class Reader extends JPanel implements ActionListener {
         this.bar.setMinimum(0);
         this.bar.setStringPainted(true);
         this.add(this.bar, "Center");
-
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -76,46 +76,41 @@ public class Reader extends JPanel implements ActionListener {
                     BufferedReader buff = new BufferedReader(lecture);
                     String ligne;
                     while ((ligne = buff.readLine()) != null) {
-//                        System.out.println(ligne);
+                        // System.out.println(ligne);
                         list.add(ligne);
                     }
                     buff.close();
                 } catch (Exception ex) {
                     System.out.println(e.toString());
                     this.addToConsole(ex.toString());
-              }
+                }
                 bar.setValue(20);
 
-//                ici nous avons toutes les lignes comportant les mel number dans un array
-//                il faut maintenant faire un appel a mongowritter pour creer le excel
-//                en allant chercher les mel number correspondant dans la db, puis les enregistrer dans le
-//                excel selon les caractèristiques
-                MongoWriter mw = new MongoWriter(this.txt.getText(),list, this);
+                // ici nous avons toutes les lignes comportant les mel number dans un array
+                // il faut maintenant faire un appel a mongowritter pour creer le excel
+                // en allant chercher les mel number correspondant dans la db, puis les
+                // enregistrer dans le
+                // excel selon les caractèristiques
+                MongoWriter mw = new MongoWriter(this.txt.getText(), list, this);
                 mw.generateMongo();
-
 
             }
 
-
-        }catch(Exception ex2){
+        } catch (Exception ex2) {
             this.addToConsole(ex2.toString());
         }
 
-
-
-//        MongoWriter mongoWriter = new MongoWriter(this.txt.getText(), wb, rowL, this);
-//        mongoWriter.generateMongo();
+        // MongoWriter mongoWriter = new MongoWriter(this.txt.getText(), wb, rowL,
+        // this);
+        // mongoWriter.generateMongo();
 
         bar.setValue(100);
-
     }
-
-
 
     private String getSelectedButtonLabel() {
         Enumeration<AbstractButton> buttons = this.group.getElements();
 
-        while(buttons.hasMoreElements()) {
+        while (buttons.hasMoreElements()) {
             AbstractButton button = buttons.nextElement();
             if (button.isSelected()) {
                 return button.getText();
@@ -129,16 +124,15 @@ public class Reader extends JPanel implements ActionListener {
         System.out.println("event File triggered");
         this.addToConsole("event File triggered");
         Path currentRelativePath = Paths.get("");
-        this.addToConsole("Current desktop path is: "+System.getProperty("user.home") + "/Desktop/");
-        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/"+txt;//name of excel file= "C:/"+txt+".xlsx";/
-        this.addToConsole("le fichier sera enregistré sous "+excelFileName);
+        this.addToConsole("Current desktop path is: " + System.getProperty("user.home") + "/Desktop/");
+        String excelFileName = System.getProperty("user.home") + "/Desktop/Generation_de_catalogue/" + txt;
+        // name of excel file= "C:/"+txt+".xlsx";
+        this.addToConsole("le fichier sera enregistré sous " + excelFileName);
 
         this.add(this.startButton);
         this.add(this.txt);
         this.container.pack();
         this.addToConsole("file choosen, start button availlable");
-
-
     }
 
     private void deleteRadioButtons() {
@@ -148,17 +142,19 @@ public class Reader extends JPanel implements ActionListener {
         this.startButton.setEnabled(true);
     }
 
-//    private HSSFSheet getSheetByName(HSSFWorkbook workbook, String sheetName) {
-//
-//        for (Object aWorkbook : workbook) {
-//            HSSFSheet sheet = (HSSFSheet) aWorkbook;
-//            if (sheet.getSheetName().equals(sheetName)) {
-//                return sheet;
-//            }
-//        }
-//
-//        return null;
-//    }
+/*
+    private HSSFSheet getSheetByName(HSSFWorkbook workbook, String sheetName) {
+    
+        for (Object aWorkbook : workbook) {
+            HSSFSheet sheet = (HSSFSheet) aWorkbook;
+            if (sheet.getSheetName().equals(sheetName)) {
+                return sheet;
+            }
+        }
+        
+        return null;
+    }
+*/
 
     private XSSFSheet getSheetByName(XSSFWorkbook workbook, String sheetName) {
 
@@ -172,39 +168,24 @@ public class Reader extends JPanel implements ActionListener {
         return null;
     }
 
-//    private String cellToString(HSSFCell cell, CellType type) {
-//        switch(type) {
-//        case STRING:
-//            return cell.getStringCellValue();
-//        case NUMERIC:
-//            return String.valueOf(cell.getNumericCellValue());
-//        case ERROR:
-//            return String.valueOf(cell.getErrorCellValue());
-//        case BLANK:
-//            return "[x]";
-//        case FORMULA:
-//            return this.cellToString(cell, cell.getCachedFormulaResultTypeEnum());
-//        default:
-//            return "----------------------------------------- " + type.toString();
-//        }
-//    }
-
-//    private String cellToString(XSSFCell cell, CellType type) {
-//        switch(type) {
-//        case STRING:
-//            return cell.getStringCellValue();
-//        case NUMERIC:
-//            return String.valueOf(cell.getNumericCellValue());
-//        case ERROR:
-//            return String.valueOf(cell.getErrorCellValue());
-//        case BLANK:
-//            return "[x]";
-//        case FORMULA:
-//            return this.cellToString(cell, cell.getCachedFormulaResultTypeEnum());
-//        default:
-//            return "----------------------------------------- " + type.toString();
-//        }
-//    }
+/*
+    private String cellToString(HSSFCell cell, CellType type) {
+        switch (type) {
+        case STRING:
+            return cell.getStringCellValue();
+        case NUMERIC:
+            return String.valueOf(cell.getNumericCellValue());
+        case ERROR:
+            return String.valueOf(cell.getErrorCellValue());
+        case BLANK:
+            return "[x]";
+        case FORMULA:
+            return this.cellToString(cell, cell.getCachedFormulaResultTypeEnum());
+        default:
+            return "----------------------------------------- " + type.toString();
+        }
+    }
+*/
 
     void addToConsole(String txt) {
         this.console.append(" - " + txt + "\r\n");
@@ -283,6 +264,4 @@ public class Reader extends JPanel implements ActionListener {
     public void setConsole(JTextArea console) {
         this.console = console;
     }
-
-
 }
