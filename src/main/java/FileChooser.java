@@ -16,19 +16,8 @@ public class FileChooser extends JPanel implements ActionListener {
     private Reader reader;
 
     FileChooser(String l, Reader reader) {
-        super(new FlowLayout());
+        this(l);
         this.reader = reader;
-
-        path = new JTextField(15);
-        fc = new JFileChooser();
-
-        label = new JLabel(l);
-        openButton = new JButton("Parcourir");
-        openButton.addActionListener(this);
-
-        this.add(label);
-        this.add(path);
-        this.add(openButton);
     }
 
     FileChooser(String l) {
@@ -51,15 +40,13 @@ public class FileChooser extends JPanel implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-
         if (e.getSource() == openButton) {
-
             if (fc.showOpenDialog(FileChooser.this) == JFileChooser.APPROVE_OPTION) {
                 file = fc.getSelectedFile();
                 path.setText(file.getPath());
-                reader.getStarted();
                 reader.addToConsole("Into the file chooser");
             }
+
             path.setCaretPosition(path.getDocument().getLength());
         }
     }
