@@ -58,26 +58,21 @@ public class MongoWriter {
         String excelFileName = homePath + "/Generation_de_catalogue/resultats/" + getFileName(file);
         reader.addToConsole("le fichier sera enregistré sous " + excelFileName);
 
-        LinkedHashMap<String, ArrayList<String>> map = getHeaders();
+        LinkedHashMap<String, ArrayList<String>> headers = getHeaders();
 
-        List<String> keys = new ArrayList<String>();
-
-        Workbook newWorkBook = new HSSFWorkbook();
         String sheetName = "Sheet1"; // name of sheet
+        Workbook newWorkBook = new HSSFWorkbook();
         HSSFSheet sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
 
         // initialisations
-        printHeader(sheet, map);
-        int j = 1;
-        int cptRow = 0;
+        printHeader(sheet, headers);
+        int cptRow = 1;
+        int cptReadCell = 0;
         int cptSheet = 1;
         int listReader = 0;
 
         // parcours des mel numbers recherchés
-
-        int leCpt = 0;
         for (String melNumber : getMelNumberList(file)) {
-
             System.out.println(listReader);
             BasicDBObject searchQuery = new BasicDBObject();
             searchQuery.put("MEL Number", melNumber);
@@ -85,60 +80,54 @@ public class MongoWriter {
 
             if (cursor == null || cursor.count() < 1) {
                 listReader++;
-                System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                System.out.println("-------------- Nothing for " + melNumber + " ---------------");
 
-                HSSFRow row1 = sheet.createRow(j);
-                j++;
-                HSSFCell cell = row1.createCell(0);
+                HSSFRow row = sheet.createRow(cptRow);
+                cptRow++;
+                HSSFCell cell = row.createCell(0);
                 cell.setCellValue(melNumber);
             } else {
                 while (cursor.hasNext()) {
-                    cptRow++;
+                    cptReadCell++;
                     listReader++;
                     DBObject article = cursor.next();
-                    System.out.println("||||||||||||||||||||||||");
+                    System.out.println("#####################################");
                     System.out.println(melNumber);
                     System.out.println(String.valueOf(article.get("MEL Number")));
                     System.out.println(melNumber.equals(String.valueOf(article.get("MEL Number"))));
-                    leCpt++;
 
-                    /* Initialisation d'une ligne par melNumber */
-                    HSSFRow row1 = sheet.createRow(j);
-                    j++;
+                    // Initialisation d'une ligne par melNumber
+                    HSSFRow row = sheet.createRow(cptRow);
+                    cptRow++;
 
                     // remplissage d'une ligne
-                    HSSFCell firstCell = row1.createCell(0);
+                    HSSFCell firstCell = row.createCell(0);
                     firstCell.setCellValue(melNumber);
-                    int i = 1;
-                    for (String name : map.keySet()) {
-                        HSSFCell cell = row1.createCell(i);
 
-                        /* parcourt de chacune des asset rechercher par header */
-                        String key = name.toString();
-                        ArrayList<String> values = map.get(name);
-                        String valeur = "";
+                    int cptNewRowCell = 1;
+                    for (String headerKey : headers.keySet()) {
+                        HSSFCell cell = row.createCell(cptNewRowCell);
 
-                        for (String asset : values) {
-                            boolean find = false;
-                            /* recherche si le asset existe dans le dbobject */
-                            int cpt = 0;
+                        // parcours de chacun des titres possibles avec le header
+                        String cellValue = "";
+                        Iterator<String> it = headers.get(headerKey).iterator();
 
-                            if (String.valueOf(article.get(asset)) == null
-                                    || String.valueOf(article.get(asset)).toString().equals("null")) {
-                                if (valeur.equals("")) {
-                                    valeur = "";
-                                }
-                            } else {
-                                /* Ici, une valeur a été trouvé, il faut donc l'ajouter dans la case du excel */
-                                find = true;
-                                valeur = String.valueOf(article.get(asset));
+                        while (it.hasNext()) {
+                            String headerValue = it.next();
+                            String value = String.valueOf(article.get(headerValue));
+
+                            // recherche si le titre dans le dbobject
+                            if (value != null && !value.equals("") && !value.equals("null")) {
+                                // Ici, une valeur a été trouvé, il faut donc l'ajouter dans la case du excel
+                                cellValue = value;
                             }
                         }
 
-                        cell.setCellValue(valeur);
+                        cell.setCellValue(cellValue);
 
-                        if (cptRow > 30000) {
-                            cptRow = 0;
+                        // Sauvegarde toutes les 30000 cellules
+                        if (cptReadCell > 30000) {
+                            cptReadCell = 0;
                             this.reader.addToConsole("Tentative de sauvegarde " + cptSheet);
 
                             try (OutputStream fileOut = new FileOutputStream(excelFileName + "-" + cptSheet + ".xls")) {
@@ -155,11 +144,11 @@ public class MongoWriter {
                             sheetName = "Sheet";// name of sheet
                             sheet = (HSSFSheet) newWorkBook.createSheet(sheetName);
 
-                            printHeader(sheet, map);
-                            j = 1;
+                            printHeader(sheet, headers);
+                            cptRow = 1;
                         }
 
-                        i++;
+                        cptNewRowCell++;
                     }
                 }
             }
@@ -168,10 +157,17 @@ public class MongoWriter {
         this.reader.addToConsole("Tentative de sauvegarde");
         try (OutputStream fileOut = new FileOutputStream(excelFileName + "-Final.xls")) {
             newWorkBook.write(fileOut);
-            System.out.println("fichier sauvegardé");
+            System.out.println("Fichier sauvegardé");
             this.reader.addToConsole("Fichier sauvegardé");
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                newWorkBook.close();
+                mongoClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
