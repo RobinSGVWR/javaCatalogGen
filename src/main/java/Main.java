@@ -10,7 +10,6 @@ public class Main {
         }
 
         // GESTION FENÊTRE
-
         JFrame fenetre = new JFrame();
         fenetre.setResizable(true);
 

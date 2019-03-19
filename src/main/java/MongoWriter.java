@@ -1,4 +1,5 @@
 import com.mongodb.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -9,6 +10,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import java.io.*;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -23,22 +25,22 @@ public class MongoWriter {
 
     private ArrayList<File> getListFile() {
         File home = FileSystemView.getFileSystemView().getHomeDirectory();
-        String homePath = home.getAbsolutePath();
+        String currentPath = System.getProperty("user.dir");
         this.reader.addToConsole("getlistFile");
-        File folder = new File(homePath + "\\Generation_de_catalogue\\Mettre_ici_les_fichiers_melNumber");
+        File folder = new File(currentPath + "/Generation_de_catalogue/Mettre_ici_les_fichiers_melNumber");
         return new ArrayList(Arrays.asList(Objects.requireNonNull(folder.listFiles())));
     }
 
-    void generateMongo() throws UnknownHostException {
+    void generateMongo(boolean retrieveImages) throws UnknownHostException {
         this.reader.addToConsole("generateMongo");
         ArrayList<File> listFile = getListFile();
         for (File file : listFile) {
             this.reader.addToConsole("Nouveau fichier : " + getFileName(file));
-            generateExcelFile(file);
+            generateExcelFile(file, retrieveImages);
         }
     }
 
-    void generateExcelFile(File file) throws UnknownHostException {
+    void generateExcelFile(File file, boolean retrieveImages) throws UnknownHostException {
         /**
          * le but est de parcourir chaque mel number, et pour chacune de ces reférences,
          * aller dans le tableau associé (map) regardé les attributs disponibles, faire
@@ -52,10 +54,9 @@ public class MongoWriter {
         DB db = mongoClient.getDB("catalog");
         DBCollection collection = db.getCollection("products");
 
-        File home = FileSystemView.getFileSystemView().getHomeDirectory();
-        String homePath = home.getAbsolutePath();
-        System.out.println(homePath);
-        String excelFileName = homePath + "/Generation_de_catalogue/resultats/" + getFileName(file);
+        String currentPath = System.getProperty("user.dir");
+        System.out.println(currentPath);
+        String excelFileName = currentPath + "/Generation_de_catalogue/resultats/" + getFileName(file);
         reader.addToConsole("le fichier sera enregistré sous " + excelFileName);
 
         LinkedHashMap<String, ArrayList<String>> headers = getHeaders();
@@ -90,11 +91,11 @@ public class MongoWriter {
                 while (cursor.hasNext()) {
                     cptReadCell++;
                     listReader++;
-                    DBObject article = cursor.next();
+                    DBObject product = cursor.next();
                     System.out.println("#####################################");
                     System.out.println(melNumber);
-                    System.out.println(String.valueOf(article.get("MEL Number")));
-                    System.out.println(melNumber.equals(String.valueOf(article.get("MEL Number"))));
+                    System.out.println(String.valueOf(product.get("MEL Number")));
+                    System.out.println(melNumber.equals(String.valueOf(product.get("MEL Number"))));
 
                     // Initialisation d'une ligne par melNumber
                     HSSFRow row = sheet.createRow(cptRow);
@@ -114,12 +115,27 @@ public class MongoWriter {
 
                         while (it.hasNext()) {
                             String headerValue = it.next();
-                            String value = String.valueOf(article.get(headerValue));
+                            String value = String.valueOf(product.get(headerValue));
 
                             // recherche si le titre dans le dbobject
                             if (value != null && !value.equals("") && !value.equals("null")) {
                                 // Ici, une valeur a été trouvé, il faut donc l'ajouter dans la case du excel
                                 cellValue = value;
+                            }
+
+                            if (retrieveImages && headers.get(headerKey).contains("Hierarchy Level Image #01")) {
+                                try {
+                                    URL url = new URL(String.valueOf(product.get(headerValue)));
+                                    String[] tabUrl = url.getFile().split("/");
+                                    File outputImg = new File(currentPath
+                                            + "/Generation_de_catalogue/resultats/" + getFileName(file)
+                                            + " - img/" + tabUrl[tabUrl.length - 1]);
+                                    if(!outputImg.exists()) {
+                                        FileUtils.copyURLToFile(url, outputImg);
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
 

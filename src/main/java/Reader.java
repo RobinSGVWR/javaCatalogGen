@@ -5,8 +5,10 @@ import java.util.Enumeration;
 
 import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -21,7 +23,9 @@ public class Reader extends JPanel implements ActionListener {
     
     private JFrame container;
     private ButtonGroup group;
+    private Box buttonsBox;
     private JButton startButton;
+    private JCheckBox imageCheckBox;
     private JEditorPane label;
     private JProgressBar bar;
     private JTextArea console;
@@ -33,12 +37,16 @@ public class Reader extends JPanel implements ActionListener {
         this.label.setText("<b>Ajouter vos fichiers .TXT dans le dossier</b> puis lancez le programme");
         this.startButton = new JButton("Lancer le programme");
         this.startButton.addActionListener(this);
+        this.imageCheckBox = new JCheckBox("Récupérer les images");
+        this.buttonsBox = new Box(BoxLayout.X_AXIS);
+        this.buttonsBox.add(this.startButton);
+        this.buttonsBox.add(Box.createHorizontalStrut(50));
+        this.buttonsBox.add(this.imageCheckBox);
         this.console = new JTextArea("Console");
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.add(this.label);
         this.add(this.console);
-        this.add(this.startButton);
-
+        this.add(this.buttonsBox);
         this.bar = new JProgressBar();
         this.bar.setMaximum(100);
         this.bar.setMinimum(0);
@@ -52,7 +60,7 @@ public class Reader extends JPanel implements ActionListener {
                 this.addToConsole("start button pushed !");
 
                 MongoWriter mw = new MongoWriter(this);
-                mw.generateMongo();
+                mw.generateMongo(this.imageCheckBox.isSelected());
             }
         } catch (Exception ex2) {
             this.addToConsole(ex2.toString());
