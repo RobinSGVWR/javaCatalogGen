@@ -1,5 +1,6 @@
 import com.mongodb.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.formula.functions.Column;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -115,6 +116,8 @@ public class MongoWriter {
 
                         while (it.hasNext()) {
                             String headerValue = it.next();
+                            if (headerValue.equals("Image"))
+                                continue;
                             String value = String.valueOf(product.get(headerValue));
 
                             // recherche si le titre dans le dbobject
@@ -123,18 +126,23 @@ public class MongoWriter {
                                 cellValue = value;
                             }
 
-                            if (retrieveImages && headers.get(headerKey).contains("Hierarchy Level Image #01")) {
-                                try {
-                                    URL url = new URL(String.valueOf(product.get(headerValue)));
-                                    String[] tabUrl = url.getFile().split("/");
-                                    File outputImg = new File(currentPath
-                                            + "/Generation_de_catalogue/resultats/" + getFileName(file)
-                                            + " - img/" + tabUrl[tabUrl.length - 1]);
-                                    if(!outputImg.exists()) {
-                                        FileUtils.copyURLToFile(url, outputImg);
+                            if (retrieveImages) {
+                                if (headers.get(headerKey).contains("Hierarchy Level Image #01")) {
+                                    try {
+                                        URL url = new URL(String.valueOf(product.get(headerValue)));
+                                        String[] tabUrl = url.getFile().split("/");
+                                        File outputImg = new File(currentPath
+                                                + "/Generation_de_catalogue/resultats/" + getFileName(file)
+                                                + " - img/" + tabUrl[tabUrl.length - 1]);
+                                        // Mettre le nom du fichier dans la colonne Image
+                                        row.createCell(cell.getColumnIndex() + 1)
+                                            .setCellValue(tabUrl[tabUrl.length - 1]);
+                                        if(!outputImg.exists()) {
+                                            FileUtils.copyURLToFile(url, outputImg);
+                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
                                 }
                             }
                         }
